@@ -78,6 +78,7 @@ class _NilCatcherPageState extends State<NilCatcherPage> {
           const Text('ایده‌پردازی و توسعهٔ نسخهٔ NIL توسط babakyaghoobii؛ رایگان برای استفادهٔ عموم.', textAlign: TextAlign.center),
           const Text('NIL edition conceived and developed by babakyaghoobii. Free for everyone to use.', textDirection: TextDirection.ltr, textAlign: TextAlign.center),
           const SizedBox(height: 20),
+          if (nilOrigin.isEmpty) const Text('سرویس مرکزی NIL هنوز منتشر نشده است؛ پس از استقرار، نسخهٔ نهایی با آدرس امن سرویس ساخته می‌شود.'),
           FilledButton.icon(onPressed: controller.busy ? null : collect, icon: const Icon(Icons.refresh), label: Text(controller.busy ? 'در حال دریافت…' : 'همین حالا کانفیگ تازه بگیر')),
           if (controller.error != null) Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text(controller.error!, style: TextStyle(color: Theme.of(context).colorScheme.error))),
           const SizedBox(height: 14),
@@ -86,7 +87,7 @@ class _NilCatcherPageState extends State<NilCatcherPage> {
           const SizedBox(height: 14),
           Wrap(spacing: 6, runSpacing: 6, children: ['all', ...nilProtocols].map((value) => ChoiceChip(label: Text(value == 'all' ? 'همه' : value.toUpperCase()), selected: protocol == value, onSelected: (_) => setState(() => protocol = value))).toList()),
           const SizedBox(height: 14),
-          OutlinedButton.icon(icon: const Icon(Icons.link), label: const Text('کپی لینک اشتراک این پروتکل'), onPressed: () async {
+          OutlinedButton.icon(icon: const Icon(Icons.link), label: const Text('کپی لینک اشتراک این پروتکل'), onPressed: nilOrigin.isEmpty ? null : () async {
             final url = nilSubscription.replace(queryParameters: {...nilSubscription.queryParameters, 'protocol': protocol});
             await Clipboard.setData(ClipboardData(text: url.toString()));
             if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('لینک اشتراک کپی شد.')));
