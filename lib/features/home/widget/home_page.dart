@@ -5,6 +5,7 @@ import 'package:hiddify/core/app_info/app_info_provider.dart';
 import 'package:hiddify/core/localization/translations.dart';
 import 'package:hiddify/core/router/bottom_sheets/bottom_sheets_notifier.dart';
 import 'package:hiddify/features/home/widget/connection_button.dart';
+import 'package:hiddify/features/nil/nil_catcher_feature.dart';
 import 'package:hiddify/features/home/widget/local_proxy_hint.dart';
 import 'package:hiddify/features/profile/notifier/active_profile_notifier.dart';
 import 'package:hiddify/features/profile/widget/profile_tile.dart';
@@ -132,6 +133,7 @@ class HomePage extends HookConsumerWidget {
                       // AsyncData(value: final profile?) =>
                       MultiSliver(
                         children: [
+                          const SliverToBoxAdapter(child: NilCatcherFeature()),
                           // const Gap(100),
                           switch (activeProfile) {
                             AsyncData(value: final profile?) => ProfileTile(
