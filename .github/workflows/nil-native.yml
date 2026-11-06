@@ -2,7 +2,7 @@ name: Build Nil-proxy native apps
 
 on:
   push:
-    branches: [nil-native]
+    branches: [nil-native, nil/ios-usb]
   workflow_dispatch:
 
 permissions:
@@ -16,14 +16,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - platform: android
-            runner: ubuntu-latest
-          - platform: macos
-            runner: macos-26
-          - platform: ios
-            runner: macos-26
-    runs-on: ${{ matrix.runner }}
+        platform: ${{ fromJSON(github.ref_name == 'nil/ios-usb' && '["ios"]' || '["android","macos","ios"]') }}
+    runs-on: ${{ matrix.platform == 'android' && 'ubuntu-latest' || 'macos-26' }}
     timeout-minutes: 55
     steps:
       - uses: actions/checkout@v6
@@ -79,10 +73,23 @@ jobs:
           hdiutil create -volname Nil-proxy -srcfolder "$staging" -format UDZO native-output/Nil-proxy-macOS-preview.dmg
           hdiutil verify native-output/Nil-proxy-macOS-preview.dmg
       - name: Build iOS and smoke test simulator launch
-        if: matrix.platform == 'ios'
+        if: matrix.platform == 'ios' && github.ref_name != 'nil/ios-usb'
         run: |
           make ios-validate
           bash .github/scripts/smoke_test_ios_simulator.sh
+      - name: Verify unsigned iPhone device build
+        if: matrix.platform == 'ios' && github.ref_name == 'nil/ios-usb'
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild -version
+          flutter build ios --debug --no-codesign --target lib/main.dart
+          app="build/ios/iphoneos/Runner.app"
+          /usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$app/Info.plist" |
+            grep -Fx io.github.babakyaghoobii.nilproxy
+          extension="$app/PlugIns/HiddifyPacketTunnel.appex"
+          /usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$extension/Info.plist" |
+            grep -Fx io.github.babakyaghoobii.nilproxy.HiddifyPacketTunnel
       - uses: actions/upload-artifact@v6
         if: matrix.platform != 'ios'
         with:
