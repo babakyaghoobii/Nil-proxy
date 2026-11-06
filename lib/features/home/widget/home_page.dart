@@ -6,6 +6,7 @@ import 'package:hiddify/core/localization/translations.dart';
 import 'package:hiddify/core/router/bottom_sheets/bottom_sheets_notifier.dart';
 import 'package:hiddify/features/home/widget/connection_button.dart';
 import 'package:hiddify/features/home/widget/local_proxy_hint.dart';
+import 'package:hiddify/features/nil_catcher/nil_catcher_card.dart';
 import 'package:hiddify/features/profile/notifier/active_profile_notifier.dart';
 import 'package:hiddify/features/profile/widget/profile_tile.dart';
 import 'package:hiddify/features/proxy/active/active_proxy_card.dart';
@@ -40,7 +41,7 @@ class HomePage extends HookConsumerWidget {
             Text.rich(
               TextSpan(
                 children: [
-                  TextSpan(text: t.common.appTitle),
+                  const TextSpan(text: "Nil-proxy"),
                   const TextSpan(text: " "),
                   const WidgetSpan(child: AppVersionLabel(), alignment: PlaceholderAlignment.middle),
                 ],
@@ -141,6 +142,7 @@ class HomePage extends HookConsumerWidget {
                             ),
                             _ => const Text(""),
                           },
+                          const SliverToBoxAdapter(child: NilCatcherCard()),
                           const SliverFillRemaining(
                             hasScrollBody: false,
                             child: Column(

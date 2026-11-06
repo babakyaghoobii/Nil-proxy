@@ -11,6 +11,7 @@ import 'package:hiddify/core/model/failures.dart';
 import 'package:hiddify/core/notification/in_app_notification_controller.dart';
 import 'package:hiddify/core/router/dialog/dialog_notifier.dart';
 import 'package:hiddify/features/connection/notifier/connection_notifier.dart';
+import 'package:hiddify/features/nil_catcher/nil_catcher_feed.dart';
 import 'package:hiddify/features/profile/add/model/free_profiles_model.dart';
 import 'package:hiddify/features/profile/data/profile_data_providers.dart';
 import 'package:hiddify/features/profile/data/profile_repository.dart';
@@ -115,6 +116,36 @@ class AddProfileNotifier extends _$AddProfileNotifier with AppLogger {
             },
           )
           .run();
+    });
+  }
+
+  Future<void> useNilCatcher() async {
+    if (state.isLoading) return;
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      final repository = _profilesRepo;
+      final url = nilCatcherFeed.toString();
+
+      Future<RemoteProfileEntity?> findProfile() async {
+        final profiles = (await repository.watchAll().first).getOrElse((error) => throw error);
+        return profiles.whereType<RemoteProfileEntity>().where((profile) => profile.url == url).firstOrNull;
+      }
+
+      var profile = await findProfile();
+      if (profile == null) {
+        final token = _cancelToken = CancelToken();
+        final result = await repository
+            .upsertRemote(url, userOverride: UserOverride(name: 'Nil Config Catcher', updateInterval: 2), cancelToken: token)
+            .run();
+        result.getOrElse((error) => throw error);
+        profile = await findProfile();
+      }
+      if (profile == null) throw const ProfileFailure.invalidConfig();
+      if (!profile.active) {
+        final result = await repository.setAsActive(profile.id).run();
+        result.getOrElse((error) => throw error);
+      }
+      return unit;
     });
   }
 
